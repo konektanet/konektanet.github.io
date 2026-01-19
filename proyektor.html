@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAHTSUL MASAIL</title>
+<style>
+    @font-face {
+        font-family: 'CustomArabicFont';
+        src: url('arabic-font.ttf') format('truetype');
+    }
+
+    body {
+        font-family: 'Arial', sans-serif;
+        background-image: url('bacground.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        color: white;
+        margin: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+        transition: background-image 0.5s ease-in-out;
+    }
+
+    .konten {
+        text-align: left;
+        align-self: center;
+        max-height: 100vh;
+    }
+
+    .rtl, .indonesia {
+        text-align: justify;
+        font-size: 60px;
+        color: #000;
+    }
+
+    .rtl {
+        direction: rtl;
+        font-family: 'CustomArabicFont', 'Traditional Arabic', Tahoma, sans-serif;
+    }
+
+    .custom-style {
+        color: red;
+        display: inline;
+    }
+
+    /* Menu klik kanan */
+    #contextMenu {
+        position: fixed;
+        display: none;
+        background: rgba(255, 255, 255, 0.95);
+        color: #000;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        z-index: 1000;
+        padding: 10px;
+        min-width: 220px;
+        backdrop-filter: blur(6px);
+        font-family: "Poppins", sans-serif;
+    }
+
+    #contextMenu div {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    #contextMenu div:hover {
+        background: #f0f0f0;
+    }
+
+    #contextMenu svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+
+    #fontSelector {
+        margin-top: 10px;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+    }
+
+    select {
+        width: 100%;
+        padding: 6px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+<div class="konten" id="data-container"></div>
+
+<!-- Menu klik kanan -->
+<div id="contextMenu">
+    <div data-bg="bacground.jpg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M12 3v18"/></svg>
+        Background 1
+    </div>
+    <div data-bg="bacground1.jpg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l9 4v6c0 5-4 9-9 9s-9-4-9-9V6l9-4z"/></svg>
+        Background 2
+    </div>
+    <div data-bg="bacground2.jpg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/></svg>
+        Background 3
+    </div>
+    <div data-bg="bacground3.jpg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12a10 10 0 0 1 20 0 10 10 0 0 1-20 0z"/></svg>
+        Background 4
+    </div>
+    <div data-bg="bacground4.jpg">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10M6 20v-6M18 20v-8"/></svg>
+        Background 5
+    </div>
+
+    <!-- Pemilih font -->
+    <div id="fontSelector">
+        <label for="fontSelect">Pilih Font:</label>
+        <select id="fontSelect">
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="'Times New Roman'">Times New Roman</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Traditional Arabic'">Traditional Arabic</option>
+        </select>
+    </div>
+</div>
+
+<script>
+function isArabic(text) {
+    return /[\u0600-\u06FF]/.test(text);
+}
+
+function adjustScrollability() {
+    const konten = document.querySelector('.konten');
+    if (konten.scrollHeight > window.innerHeight) {
+        document.body.style.overflow = 'auto';
+    } else {
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+let fontSize = 60;
+const minFont = 20;
+const maxFont = 500;
+
+function applyFontSize() {
+    document.querySelectorAll('.rtl, .indonesia').forEach(el => {
+        el.style.fontSize = fontSize + 'px';
+    });
+}
+
+function applyFontFamily(fontFamily) {
+    document.querySelectorAll('.rtl, .indonesia').forEach(el => {
+        el.style.fontFamily = fontFamily;
+    });
+}
+
+function processDataAndDisplay(data) {
+    const container = document.getElementById('data-container');
+    container.innerHTML = '';
+
+    const lastRow = data[data.length - 1];
+    const paragraph = document.createElement('p');
+    const isArabicText = isArabic(lastRow[0]);
+
+    if (isArabicText) {
+        paragraph.classList.add('rtl');
+    } else if (lastRow[0].match(/[a-zA-Z]/)) {
+        paragraph.classList.add('indonesia');
+    }
+
+    const underlinedText = lastRow[0].replace(/\*(.*?)\*/g, (_, p1) => `<p class="custom-style">${p1}</p>`);
+    const newText = document.createElement('div');
+    newText.innerHTML = underlinedText.replace(/\n/g, '<br>');
+    paragraph.appendChild(newText);
+    container.appendChild(paragraph);
+
+    applyFontSize();
+    adjustScrollability();
+}
+
+// Zoom dengan Ctrl + Scroll
+document.addEventListener('wheel', function(e) {
+    if (e.ctrlKey) {
+        e.preventDefault();
+        if (e.deltaY < 0 && fontSize < maxFont) {
+            fontSize += 2;
+        } else if (e.deltaY > 0 && fontSize > minFont) {
+            fontSize -= 2;
+        }
+        applyFontSize();
+        adjustScrollability();
+    }
+}, { passive: false });
+
+// Menu klik kanan
+const contextMenu = document.getElementById("contextMenu");
+
+document.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    contextMenu.style.display = "block";
+    contextMenu.style.left = e.pageX + "px";
+    contextMenu.style.top = e.pageY + "px";
+});
+
+document.addEventListener("click", function() {
+    contextMenu.style.display = "none";
+});
+
+document.querySelectorAll("#contextMenu div[data-bg]").forEach(item => {
+    item.addEventListener("click", function() {
+        const bg = this.getAttribute("data-bg");
+        document.body.style.backgroundImage = `url('${bg}')`;
+        localStorage.setItem("selectedBackground", bg);
+        contextMenu.style.display = "none";
+    });
+});
+
+// Pilih font
+document.getElementById("fontSelect").addEventListener("change", function() {
+    const selectedFont = this.value;
+    applyFontFamily(selectedFont);
+    localStorage.setItem("selectedFont", selectedFont);
+});
+
+window.addEventListener("load", function() {
+    const savedBg = localStorage.getItem("selectedBackground");
+    if (savedBg) document.body.style.backgroundImage = `url('${savedBg}')`;
+
+    const savedFont = localStorage.getItem("selectedFont");
+    if (savedFont) {
+        document.getElementById("fontSelect").value = savedFont;
+        applyFontFamily(savedFont);
+    }
+});
+
+// Ambil data dari Google Sheet
+function fetchDataAndDisplay(columnAndRows) {
+    const apiKey = 'AIzaSyAlT57jkJ9WR6bmEXlBXcR1-3kKzhk8FHw';
+    const spreadsheetId = '1ixedGP5FLnWpKjsyuCWs3H8ewGOHh3tDR-0mer_UpF4';
+    const sheetName = 'Sheet1';
+    const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!${columnAndRows}?key=${apiKey}`;
+
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => processDataAndDisplay(data.values))
+        .catch(error => console.error('Error fetching data:', error));
+}
+
+setInterval(() => fetchDataAndDisplay('A:A'), 3000);
+fetchDataAndDisplay('A:A');
+</script>
+</body>
+</html>

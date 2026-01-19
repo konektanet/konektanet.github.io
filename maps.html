@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WIFI TEGUHAN - Network Monitoring Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+/* VARIABEL CSS UNTUK KONSISTENSI DESAIN */
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* RESET DAN STYLE DASAR */
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  font-family: 'Inter', sans-serif; 
+}
+
+body { 
+  background: var(--bg); 
+  color: var(--text); 
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+/* DASHBOARD LAYOUT */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  height: calc(100vh - 50px);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+/* SIDEBAR PANEL */
+.sidebar-panel {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.sidebar-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header h2 {
+  font-size: 1.3rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* FILTERS */
+.filters {
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group h3 {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.filter-btn i {
+  margin-right: 5px;
+}
+
+/* STATS SUMMARY */
+.stats-summary {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.stat-online .stat-value { color: var(--success); }
+.stat-offline .stat-value { color: var(--danger); }
+.stat-pending .stat-value { color: var(--warning); }
+
+/* CUSTOMERS LIST */
+.customers-list {
+  margin-top: 20px;
+}
+
+.customer-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid var(--primary);
+}
+
+.customer-item:hover {
+  background: #eef2ff;
+  transform: translateX(5px);
+}
+
+.customer-item.online { border-left-color: var(--success); }
+.customer-item.offline { border-left-color: var(--danger); }
+.customer-item.pending { border-left-color: var(--warning); }
+
+.customer-status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.customer-info {
+  flex: 1;
+}
+
+.customer-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 3px;
+}
+
+.customer-ip {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* MAP CONTAINER */
+.map-container {
+  background: var(--card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+#networkMap {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 10px;
+}
+
+.map-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-btn {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.map-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* LEGEND */
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  max-width: 200px;
+}
+
+.legend-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.legend-online { background: var(--success); }
+.legend-offline { background: var(--danger); }
+.legend-pending { background: var(--warning); }
+
+/* FOOTER */
+.footer-watermark {
+  position: relative;
+  width: 100%;
+  background: rgba(248, 250, 252, 0.95);
+  color: #64748b;
+  padding: 15px 0;
+  text-align: center;
+  font-size: 13px;
+  margin-top: 20px;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 5px;
+}
+
+.watermark-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+/* CUSTOM LEAFLET STYLES */
+.leaflet-popup-content {
+  min-width: 250px;
+}
+
+.customer-popup {
+  padding: 10px;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.popup-status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.popup-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.popup-info {
+  margin-bottom: 15px;
+}
+
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.popup-label {
+  color: var(--text-light);
+}
+
+.popup-value {
+  font-weight: 500;
+}
+
+.popup-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.popup-metric {
+  text-align: center;
+}
+
+.popup-metric .value {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.popup-metric .label {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.popup-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.popup-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.popup-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.popup-btn.secondary {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.popup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+/* LOADING */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-light);
+}
+
+.loading i {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  color: var(--primary);
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  70% { transform: scale(2); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+ 
+  .map-controls {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .map-legend {
+    bottom: 10px;
+    left: 10px;
+    padding: 10px;
+  }
+  
+ 
+  .footer-watermark {
+    font-size: 11px;
+    padding: 16px 0;
+    margin-top: 30px;
+  }
+  
+  .copyright, .author {
+    font-size: 10.5px;
+  }
+  
+ 
+}
+/* ===============================
+   ANIMASI MARKER PROFESIONAL
+================================ */
+
+.marker-online {
+    animation: pulseGreen 1.5s infinite;
+  }
+  
+  .marker-offline {
+    animation: blinkRed 1.2s infinite;
+  }
+  
+  .marker-warning {
+    animation: pulseYellow 1.8s infinite;
+  }
+  
+  @keyframes pulseGreen {
+    0% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+  
+  @keyframes blinkRed {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+  
+  @keyframes pulseYellow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 12px rgba(245, 158, 11, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+  }
+  .custom-marker:hover {
+    transform: scale(1.2);
+    transition: 0.2s;
+  }
+
+/* ===============================
+   STYLE UNTUK SPLITTER DAN KABEL
+================================ */
+
+/* Style untuk marker splitter */
+.splitter-marker {
+  position: relative;
+  animation: splitterPulse 2s infinite;
+}
+
+@keyframes splitterPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Style untuk kabel */
+.cable-line {
+  stroke-dasharray: 10;
+  animation: cableFlow 20s linear infinite;
+}
+
+@keyframes cableFlow {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+/* Kabel online (hijau) */
+.cable-online {
+  stroke: #10b981;
+  stroke-width: 3;
+  opacity: 0.8;
+  stroke-dasharray: 10, 5;
+}
+
+/* Kabel offline (merah) */
+.cable-offline {
+  stroke: #ef4444;
+  stroke-width: 4;
+  opacity: 0.9;
+  stroke-dasharray: none;
+  animation: blinkCable 1.5s infinite;
+}
+
+@keyframes blinkCable {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+}
+
+/* Kabel warning (kuning) */
+.cable-warning {
+  stroke: #f59e0b;
+  stroke-width: 3;
+  opacity: 0.8;
+  stroke-dasharray: 5, 10;
+}
+
+/* Tooltip untuk kabel */
+.cable-tooltip {
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+/* Popup untuk splitter */
+.splitter-popup {
+  min-width: 280px;
+}
+
+.splitter-popup .popup-header {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  padding: 12px;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.splitter-popup .popup-info {
+  padding: 12px;
+}
+
+.splitter-popup .connected-customers {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.connected-customer {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.connected-customer:last-child {
+  border-bottom: none;
+}
+
+.connected-customer:hover {
+  background: #f8fafc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Layer controls panel - BISA DISEMBUNYIKAN */
+.layer-controls-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  width: 220px;
+  transition: all 0.3s ease;
+}
+
+.layer-controls-panel.hidden {
+  transform: translateX(-250px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-toggle-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.panel-toggle-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+.panel-toggle-btn.hidden {
+  background: var(--primary-light);
+}
+
+.layer-controls-group {
+  margin-bottom: 15px;
+}
+
+.layer-controls-group h5 {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.layer-control-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.layer-control-item:hover {
+  background: #f8fafc;
+}
+
+.layer-control-item input {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.layer-control-item label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layer-control-item i {
+  width: 16px;
+  color: var(--text-light);
+}
+
+.layer-control-item.active i {
+  color: var(--primary);
+}
+
+/* Tombol kecil untuk menampilkan panel */
+.panel-toggle-small {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.3s;
+  z-index: 999;
+}
+
+.panel-toggle-small:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateX(5px);
+}
+
+.panel-toggle-small.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Legend compact untuk panel */
+.legend-compact {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.legend-compact h5 {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-compact-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.legend-compact-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.legend-compact-line {
+  width: 20px;
+  height: 3px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Splitter info di sidebar */
+.splitter-info {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.splitter-info h3 {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.splitter-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.splitter-stat {
+  background: #f1f5f9;
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.splitter-stat .value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #8b5cf6;
+}
+
+.splitter-stat .label {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* Error message */
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+.error-message i {
+  margin-right: 8px;
+}
+
+/* Loading untuk splitter */
+.splitter-loading {
+  text-align: center;
+  padding: 10px;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.splitter-loading i {
+  animation: spin 1.5s linear infinite;
+  margin-right: 8px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- MAIN DASHBOARD -->
+  <div id="network-content" class="dashboard-layout">
+    <!-- SIDEBAR PANEL -->
+    <div class="sidebar-panel">
+      <div class="sidebar-header">
+        <h2><i class="fas fa-filter"></i> Filter & Kontrol</h2>
+      </div>
+      
+      <!-- FILTERS -->
+      <div class="filters">
+        <div class="filter-group">
+          <h3>Status Jaringan</h3>
+          <div class="filter-options">
+            <button class="filter-btn active" data-filter="all">
+              <i class="fas fa-globe"></i> Semua
+            </button>
+            <button class="filter-btn" data-filter="online">
+              <i class="fas fa-wifi"></i> Online
+            </button>
+            <button class="filter-btn" data-filter="offline">
+              <i class="fas fa-plug"></i> Offline
+            </button>
+            <button class="filter-btn" data-filter="pending">
+              <i class="fas fa-exclamation-triangle"></i> Bermasalah
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- STATS SUMMARY -->
+      <div class="stats-summary">
+        <h3 style="margin-bottom: 15px;">Ringkasan Status</h3>
+        <div class="stat-item stat-online">
+          <div class="stat-label">
+            <i class="fas fa-check-circle"></i>
+            <span>Online</span>
+          </div>
+          <div class="stat-value" id="onlineCount">0</div>
+        </div>
+        <div class="stat-item stat-offline">
+          <div class="stat-label">
+            <i class="fas fa-times-circle"></i>
+            <span>Offline</span>
+          </div>
+          <div class="stat-value" id="offlineCount">0</div>
+        </div>
+        <div class="stat-item stat-pending">
+          <div class="stat-label">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Bermasalah</span>
+          </div>
+          <div class="stat-value" id="warningCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">
+            <i class="fas fa-users"></i>
+            <span>Total Pelanggan</span>
+          </div>
+          <div class="stat-value" id="totalCount">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">
+            <i class="fas fa-sitemap"></i>
+            <span>Splitter</span>
+          </div>
+          <div class="stat-value" id="splitterCount">0</div>
+        </div>
+      </div>
+      
+      <!-- SPLITTER INFO -->
+      <div class="splitter-info">
+        <h3>Statistik Splitter</h3>
+        <div class="splitter-stats">
+          <div class="splitter-stat">
+            <div class="value" id="cableOnline">0</div>
+            <div class="label">Kabel Online</div>
+          </div>
+          <div class="splitter-stat">
+            <div class="value" id="cableOffline">0</div>
+            <div class="label">Kabel Offline</div>
+          </div>
+        </div>
+        <div id="splitterStatus" class="splitter-loading">
+          <i class="fas fa-spinner"></i> Memuat data splitter...
+        </div>
+      </div>
+      
+      <!-- CUSTOMERS LIST -->
+      <div class="customers-list">
+        <h3 style="margin-bottom: 15px; font-size: 1rem;">Daftar Pelanggan</h3>
+        <div id="customersList">
+          <div class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Memuat daftar pelanggan...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- MAP CONTAINER -->
+    <div class="map-container">
+      <div id="networkMap"></div>
+      
+      <!-- MAP CONTROLS -->
+      <div class="map-controls">
+        <button class="map-btn" id="zoomIn" title="Zoom In">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button class="map-btn" id="zoomOut" title="Zoom Out">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button class="map-btn" id="locateMe" title="Lokasi Saya">
+          <i class="fas fa-location-arrow"></i>
+        </button>
+        <button class="map-btn" id="resetView" title="Reset View">
+          <i class="fas fa-globe"></i>
+        </button>
+        <button class="map-btn" id="refreshData" title="Refresh Data">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+      
+      <!-- PANEL KONTROL LAYER (BISA DISEMBUNYIKAN) -->
+      <div id="layerControlsPanel" class="layer-controls-panel">
+        <div class="panel-header">
+          <h4><i class="fas fa-layer-group"></i> Kontrol Peta</h4>
+          <button class="panel-toggle-btn" id="hidePanelBtn" title="Sembunyikan Panel">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+        </div>
+        
+        <div class="layer-controls-group">
+          <h5>Tampilkan Layer</h5>
+          <div class="layer-control-item" id="layerCustomersItem">
+            <input type="checkbox" id="chkCustomers" checked>
+            <label for="chkCustomers">
+              <i class="fas fa-user"></i> Pelanggan
+            </label>
+          </div>
+          <div class="layer-control-item" id="layerSplittersItem">
+            <input type="checkbox" id="chkSplitters" checked>
+            <label for="chkSplitters">
+              <i class="fas fa-sitemap"></i> Splitter
+            </label>
+          </div>
+          <div class="layer-control-item" id="layerCablesItem">
+            <input type="checkbox" id="chkCables" checked>
+            <label for="chkCables">
+              <i class="fas fa-network-wired"></i> Kabel
+            </label>
+          </div>
+        </div>
+        
+        <div class="legend-compact">
+          <h5>Keterangan</h5>
+          <div class="legend-compact-item">
+            <div class="legend-compact-color" style="background: #10b981;"></div>
+            <span>Pelanggan Online</span>
+          </div>
+          <div class="legend-compact-item">
+            <div class="legend-compact-color" style="background: #ef4444;"></div>
+            <span>Pelanggan Offline</span>
+          </div>
+          <div class="legend-compact-item">
+            <div class="legend-compact-color" style="background: #f59e0b;"></div>
+            <span>Pelanggan Bermasalah</span>
+          </div>
+          <div class="legend-compact-item">
+            <div class="legend-compact-color" style="background: #8b5cf6;"></div>
+            <span>Splitter</span>
+          </div>
+          <div class="legend-compact-item">
+            <div class="legend-compact-line" style="background: #10b981;"></div>
+            <span>Kabel Online</span>
+          </div>
+          <div class="legend-compact-item">
+            <div class="legend-compact-line" style="background: #ef4444;"></div>
+            <span>Kabel Offline</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- TOMBOL KECIL UNTUK MENAMPILKAN PANEL -->
+      <button id="showPanelBtn" class="panel-toggle-small hidden" title="Tampilkan Kontrol">
+        <i class="fas fa-layer-group"></i>
+      </button>
+      
+      <!-- LEGEND BESAR (TETAP ADA) -->
+      
+    </div>
+  </div>
+  
+  <!-- FOOTER -->
+  <div class="footer-watermark">
+    <div class="watermark-content">
+      <span class="copyright">© 2025 All Rights Reserved</span>
+      <span class="separator">|</span>
+      <span class="author">By: Teguh Sulistyawan</span>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+// ============================================
+// KONFIGURASI DAN INISIALISASI
+// ============================================
+
+// URL API
+const NETWORK_API_URL = "https://script.google.com/macros/s/AKfycbw7WUK1zmoqfxaVuvIGlmG4w0_NP87jrQrhNoY-cFvdlXpsJXFF-DFucCMH7kg7N7Gh9Q/exec";
+const SPLITTER_API_URL = "https://script.google.com/macros/s/AKfycbxDmuxdWEFlOCylb7f4q1mN7SIerWzBpOFpEKZjKgC6c3cSB0uYzWmemOhe5Xwm1Bxe/exec";
+
+// Variabel global
+let map;
+let markers = L.markerClusterGroup({
+    maxClusterRadius: 25,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    disableClusteringAtZoom: 17
+});
+
+let cableLayer = L.layerGroup();
+let splitterLayer = L.layerGroup();
+
+let allCustomers = [];
+let allSplitters = [];
+let currentFilter = 'all';
+let showCustomers = true;
+let showSplitters = true;
+let showCables = true;
+
+// ============================================
+// INISIALISASI PETA
+// ============================================
+
+function initMap() {
+ // Default ke Desa Teguhan, Grobogan
+map = L.map('networkMap').setView([-7.038457, 110.940831], 13);
+  
+  // Tambahkan tile layer
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution: 'Tiles © Esri',
+      maxZoom: 19
+    }
+  ).addTo(map);
+  
+  // Tambahkan marker cluster group ke peta
+  map.addLayer(markers);
+  map.addLayer(cableLayer);
+  map.addLayer(splitterLayer);
+  
+  // Setup map controls
+  document.getElementById('zoomIn').addEventListener('click', () => map.zoomIn());
+  document.getElementById('zoomOut').addEventListener('click', () => map.zoomOut());
+  document.getElementById('resetView').addEventListener('click', () => map.setView([-6.2088, 106.8456], 12));
+  document.getElementById('locateMe').addEventListener('click', locateUser);
+  document.getElementById('refreshData').addEventListener('click', refreshAllData);
+  
+  // Setup layer controls panel
+  setupLayerControlsPanel();
+}
+
+// ============================================
+// SETUP PANEL KONTROL LAYER
+// ============================================
+
+function setupLayerControlsPanel() {
+  // Setup checkbox event listeners
+  document.getElementById('chkCustomers').addEventListener('change', function() {
+    toggleLayerCustomers();
+  });
+  
+  document.getElementById('chkSplitters').addEventListener('change', function() {
+    toggleLayerSplitters();
+  });
+  
+  document.getElementById('chkCables').addEventListener('change', function() {
+    toggleLayerCables();
+  });
+  
+  // Setup panel toggle buttons
+  document.getElementById('hidePanelBtn').addEventListener('click', function() {
+    hideLayerControlsPanel();
+  });
+  
+  document.getElementById('showPanelBtn').addEventListener('click', function() {
+    showLayerControlsPanel();
+  });
+  
+  // Update initial checkbox states
+  updateLayerCheckboxes();
+}
+
+function hideLayerControlsPanel() {
+  const panel = document.getElementById('layerControlsPanel');
+  const showBtn = document.getElementById('showPanelBtn');
+  
+  panel.classList.add('hidden');
+  setTimeout(() => {
+    showBtn.classList.remove('hidden');
+  }, 300);
+}
+
+function showLayerControlsPanel() {
+  const panel = document.getElementById('layerControlsPanel');
+  const showBtn = document.getElementById('showPanelBtn');
+  
+  showBtn.classList.add('hidden');
+  setTimeout(() => {
+    panel.classList.remove('hidden');
+  }, 50);
+}
+
+function updateLayerCheckboxes() {
+  document.getElementById('chkCustomers').checked = showCustomers;
+  document.getElementById('chkSplitters').checked = showSplitters;
+  document.getElementById('chkCables').checked = showCables;
+  
+  // Update active state on items
+  const customersItem = document.getElementById('layerCustomersItem');
+  const splittersItem = document.getElementById('layerSplittersItem');
+  const cablesItem = document.getElementById('layerCablesItem');
+  
+  customersItem.classList.toggle('active', showCustomers);
+  splittersItem.classList.toggle('active', showSplitters);
+  cablesItem.classList.toggle('active', showCables);
+}
+
+// ============================================
+// FUNGSI UTAMA - DATA PELANGGAN
+// ============================================
+
+async function fetchNetworkData() {
+  try {
+    const res = await fetch(NETWORK_API_URL);
+    const data = await res.json();
+    allCustomers = data;
+    
+    updateStats(data);
+    renderCustomerList(data);
+    addMarkersToMap(data);
+    
+    // Gambar kabel setelah data splitter dimuat
+    if (allSplitters.length > 0) {
+      drawCableConnections();
+    }
+    
+  } catch (err) {
+    console.error('Gagal fetch data jaringan:', err);
+    showError('Gagal memuat data monitoring jaringan');
+  }
+}
+
+// ============================================
+// FUNGSI UTAMA - DATA SPLITTER
+// ============================================
+
+async function fetchSplitterData() {
+  try {
+    const res = await fetch(SPLITTER_API_URL);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    
+    if (data && Array.isArray(data) && data.length > 0) {
+      allSplitters = processSplitterData(data);
+      document.getElementById('splitterCount').textContent = allSplitters.length;
+      
+      // Update splitter status
+      document.getElementById('splitterStatus').innerHTML = 
+        `<i class="fas fa-check-circle" style="color: #10b981;"></i> ${allSplitters.length} splitter ditemukan`;
+      
+      // Tambahkan splitter ke peta
+      addSplitterMarkers();
+      
+      // Gambar kabel
+      drawCableConnections();
+    } else {
+      console.warn('Data splitter kosong dari API');
+      document.getElementById('splitterCount').textContent = '0';
+      document.getElementById('splitterStatus').innerHTML = 
+        '<span style="color: #64748b;">Tidak ada data splitter</span>';
+    }
+    
+  } catch (err) {
+    console.error('Gagal fetch data splitter:', err);
+    document.getElementById('splitterStatus').innerHTML = 
+      `<div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        Gagal memuat data splitter
+        <button onclick="fetchSplitterData()" style="
+          background: var(--primary);
+          color: white;
+          border: none;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          margin-left: 8px;
+          cursor: pointer;
+        ">Coba Lagi</button>
+      </div>`;
+  }
+}
+
+// ============================================
+// PROSES DATA SPLITTER
+// ============================================
+
+function processSplitterData(rawData) {
+  return rawData.map(splitter => {
+    // Parse koordinat splitter
+    let splitterCoords = null;
+    if (splitter.kordinat_spliter) {
+      const [lat, lng] = splitter.kordinat_spliter
+        .split(',')
+        .map(coord => parseFloat(coord.trim()));
+      splitterCoords = { lat, lng };
+    }
+    
+    // Parse koordinat pelanggan (multiple lines)
+    let customerCoords = [];
+    if (splitter.kordinat_pelanggan) {
+      const coordLines = splitter.kordinat_pelanggan
+        .split(/[\n,]/)
+        .filter(line => line.trim() !== '');
+      
+      for (let i = 0; i < coordLines.length; i += 2) {
+        if (coordLines[i + 1]) {
+          const lat = parseFloat(coordLines[i].trim());
+          const lng = parseFloat(coordLines[i + 1].trim());
+          if (!isNaN(lat) && !isNaN(lng)) {
+            customerCoords.push({ lat, lng });
+          }
+        }
+      }
+    }
+    
+    return {
+      name: splitter.nama,
+      coordinates: splitterCoords,
+      customerCoordinates: customerCoords,
+      connectedCustomers: findConnectedCustomers(customerCoords)
+    };
+  }).filter(splitter => splitter !== null && splitter.coordinates !== null);
+}
+
+// ============================================
+// MENCARI PELANGGAN YANG TERHUBUNG
+// ============================================
+
+function findConnectedCustomers(customerCoords) {
+  if (!allCustomers || allCustomers.length === 0) return [];
+  
+  const connected = [];
+  
+  customerCoords.forEach(coord => {
+    const matchedCustomer = allCustomers.find(customer => {
+      if (!customer.location) return false;
+      
+      const [custLat, custLng] = customer.location
+        .split(',')
+        .map(c => parseFloat(c.trim()));
+      
+      // Toleransi 0.00001 derajat (~1 meter)
+      const latDiff = Math.abs(custLat - coord.lat);
+      const lngDiff = Math.abs(custLng - coord.lng);
+      
+      return latDiff < 0.00001 && lngDiff < 0.00001;
+    });
+    
+    if (matchedCustomer) {
+      connected.push({
+        customer: matchedCustomer,
+        coordinates: coord
+      });
+    }
+  });
+  
+  return connected;
+}
+
+// ============================================
+// MARKER DAN POPUP FUNCTIONS
+// ============================================
+
+function addMarkersToMap(customers) {
+  markers.clearLayers();
+  
+  customers.forEach(customer => {
+    if (customer.location && customer.location.includes(',')) {
+      const [lat, lng] = customer.location.split(',').map(coord => parseFloat(coord.trim()));
+      
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const marker = L.marker([lat, lng], {
+          icon: createCustomIcon(customer.status)
+        });
+        
+        marker.bindPopup(createPopupContent(customer));
+        marker.customerData = customer;
+        
+        markers.addLayer(marker);
+      }
+    }
+  });
+}
+
+function addSplitterMarkers() {
+  splitterLayer.clearLayers();
+  
+  allSplitters.forEach(splitter => {
+    if (!splitter.coordinates) return;
+    
+    const { lat, lng } = splitter.coordinates;
+    
+    const splitterIcon = L.divIcon({
+      html: `
+        <div class="splitter-marker" style="
+          width: 32px;
+          height: 32px;
+          background: #8b5cf6;
+          border-radius: 50%;
+          border: 3px solid white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 14px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        ">
+          <i class="fas fa-sitemap"></i>
+        </div>
+      `,
+      className: 'splitter-div-icon',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    
+    const marker = L.marker([lat, lng], { 
+      icon: splitterIcon,
+      zIndexOffset: 1000
+    });
+    
+    marker.bindPopup(createSplitterPopup(splitter));
+    marker.splitterData = splitter;
+    
+    splitterLayer.addLayer(marker);
+  });
+}
+
+// ============================================
+// FUNGSI MENGGAMBAR KABEL
+// ============================================
+
+function drawCableConnections() {
+  cableLayer.clearLayers();
+  
+  if (!showCables) return;
+  
+  let onlineCables = 0;
+  let offlineCables = 0;
+  let warningCables = 0;
+  
+  allSplitters.forEach(splitter => {
+    if (!splitter.coordinates || splitter.customerCoordinates.length === 0) return;
+    
+    splitter.customerCoordinates.forEach((custCoord, index) => {
+      const connectedCustomer = splitter.connectedCustomers[index];
+      let cableColor = '#10b981'; // Default: hijau (online)
+      let cableClass = 'cable-line cable-online';
+      
+      if (connectedCustomer && connectedCustomer.customer) {
+        const customerStatus = connectedCustomer.customer.status;
+        
+        switch(customerStatus) {
+          case 'ONLINE':
+            cableColor = '#10b981';
+            cableClass = 'cable-line cable-online';
+            onlineCables++;
+            break;
+          case 'OFFLINE':
+            cableColor = '#ef4444';
+            cableClass = 'cable-line cable-offline';
+            offlineCables++;
+            break;
+          case 'SEDANG':
+            cableColor = '#f59e0b';
+            cableClass = 'cable-line cable-warning';
+            warningCables++;
+            break;
+        }
+      }
+      
+      const line = L.polyline(
+        [
+          [splitter.coordinates.lat, splitter.coordinates.lng],
+          [custCoord.lat, custCoord.lng]
+        ],
+        {
+          color: cableColor,
+          weight: connectedCustomer && connectedCustomer.customer.status === 'OFFLINE' ? 4 : 3,
+          opacity: 0.8,
+          dashArray: '10, 5',
+          className: cableClass
+        }
+      );
+      
+      if (connectedCustomer && connectedCustomer.customer) {
+        line.bindTooltip(
+          `${splitter.name} → ${connectedCustomer.customer.name}<br>Status: ${connectedCustomer.customer.status}`,
+          { 
+            permanent: false, 
+            direction: 'top',
+            className: 'cable-tooltip'
+          }
+        );
+      }
+      
+      cableLayer.addLayer(line);
+    });
+  });
+  
+  // Update cable statistics
+  document.getElementById('cableOnline').textContent = onlineCables;
+  document.getElementById('cableOffline').textContent = offlineCables;
+}
+
+// ============================================
+// FUNGSI POPUP
+// ============================================
+
+function createPopupContent(customer) {
+  const statusColor = getStatusColor(customer.status);
+  
+  // Cari splitter yang terhubung
+  const connectedSplitters = allSplitters.filter(splitter => 
+    splitter.connectedCustomers.some(conn => 
+      conn.customer && conn.customer.name === customer.name
+    )
+  );
+  
+  let splitterInfo = '';
+  if (connectedSplitters.length > 0) {
+    splitterInfo = `
+      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+        <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 5px;">
+          <i class="fas fa-sitemap"></i> Terhubung ke:
+        </div>
+        <div style="font-size: 0.85rem;">
+          ${connectedSplitters.map(s => s.name).join(', ')}
+        </div>
+      </div>
+    `;
+  }
+  
+  return `
+    <div class="customer-popup">
+      <div class="popup-header">
+        <div class="popup-status" style="background: ${statusColor}"></div>
+        <div class="popup-title">${customer.name}</div>
+      </div>
+      <div class="popup-info">
+        <div class="popup-row">
+          <span class="popup-label">Status:</span>
+          <span class="popup-value" style="color: ${statusColor}; font-weight: 600">${customer.status}</span>
+        </div>
+        <div class="popup-row">
+          <span class="popup-label">Alamat IP:</span>
+          <span class="popup-value">${customer.ip}</span>
+        </div>
+        <div class="popup-row">
+          <span class="popup-label">Lokasi:</span>
+          <span class="popup-value">${customer.location || 'Tidak tersedia'}</span>
+        </div>
+      </div>
+      <div class="popup-metrics">
+        <div class="popup-metric">
+          <div class="value" style="color: var(--success)">${customer.latency || '-'} ms</div>
+          <div class="label">Latensi</div>
+        </div>
+        <div class="popup-metric">
+          <div class="value" style="color: var(--warning)">${customer.jitter || '-'} ms</div>
+          <div class="label">Jitter</div>
+        </div>
+        <div class="popup-metric">
+          <div class="value" style="color: var(--danger)">${customer.loss || '-'}%</div>
+          <div class="label">Loss</div>
+        </div>
+      </div>
+      ${splitterInfo}
+      <div class="popup-actions">
+        <button class="popup-btn primary" onclick="window.open('http://${customer.ip}:8080', '_blank')">
+          <i class="fas fa-desktop"></i> Remote
+        </button>
+        <button class="popup-btn secondary" onclick="focusOnCustomer('${customer.name}')">
+          <i class="fas fa-search"></i> Fokus
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function createSplitterPopup(splitter) {
+  const customerCount = splitter.customerCoordinates.length;
+  const connectedCount = splitter.connectedCustomers.length;
+  
+  let customersHtml = '';
+  if (splitter.connectedCustomers.length > 0) {
+    customersHtml = splitter.connectedCustomers.map((conn, idx) => {
+      const statusColor = getStatusColor(conn.customer.status);
+      return `
+        <div class="connected-customer" onclick="focusOnCustomer('${conn.customer.name}')">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: ${statusColor}; margin-right: 8px;"></div>
+          <div style="flex: 1;">
+            <div style="font-weight: 500;">${conn.customer.name}</div>
+            <div style="font-size: 0.75rem; color: var(--text-light);">${conn.customer.status}</div>
+          </div>
+          <i class="fas fa-chevron-right" style="color: var(--text-light); font-size: 0.8rem;"></i>
+        </div>
+      `;
+    }).join('');
+  } else {
+    customersHtml = '<div style="color: var(--text-light); text-align: center; padding: 10px;">Tidak ada pelanggan teridentifikasi</div>';
+  }
+  
+  return `
+    <div class="splitter-popup">
+      <div class="popup-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-sitemap"></i>
+          <div class="popup-title">${splitter.name}</div>
+        </div>
+        <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 5px;">Splitter Node</div>
+      </div>
+      <div class="popup-info">
+        <div class="popup-row">
+          <span class="popup-label">Lokasi:</span>
+          <span class="popup-value">${splitter.coordinates.lat.toFixed(6)}, ${splitter.coordinates.lng.toFixed(6)}</span>
+        </div>
+        <div class="popup-row">
+          <span class="popup-label">Pelanggan Terhubung:</span>
+          <span class="popup-value">${connectedCount} / ${customerCount}</span>
+        </div>
+        
+        <div style="margin-top: 10px;">
+          <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 5px;">
+            <i class="fas fa-users"></i> Daftar Pelanggan:
+          </div>
+          <div class="connected-customers">
+            ${customersHtml}
+          </div>
+        </div>
+      </div>
+      <div class="popup-actions">
+        <button class="popup-btn primary" onclick="zoomToSplitter('${splitter.name}')">
+          <i class="fas fa-search-plus"></i> Zoom
+        </button>
+        <button class="popup-btn secondary" onclick="highlightSplitterCables('${splitter.name}')">
+          <i class="fas fa-project-diagram"></i> Kabel
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================
+// FUNGSI BANTUAN
+// ============================================
+
+function createCustomIcon(status) {
+  const color = getStatusColor(status);
+  const iconClass = getStatusIcon(status);
+
+  let animClass = '';
+  if (status === 'ONLINE') animClass = 'marker-online';
+  if (status === 'OFFLINE') animClass = 'marker-offline';
+  if (status === 'SEDANG') animClass = 'marker-warning';
+
+  return L.divIcon({
+    html: `
+      <div class="marker-dot ${animClass}" style="
+        background:${color};
+        width:22px;
+        height:22px;
+        border-radius:50%;
+        border:3px solid white;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:white;
+        font-size:11px;
+      ">
+        <i class="${iconClass}"></i>
+      </div>
+    `,
+    className: 'custom-marker',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+}
+
+function getStatusColor(status) {
+  switch(status) {
+    case 'ONLINE': return '#10b981';
+    case 'OFFLINE': return '#ef4444';
+    case 'SEDANG': return '#f59e0b';
+    default: return '#64748b';
+  }
+}
+
+function getStatusClass(status) {
+  switch(status) {
+    case 'ONLINE': return 'online';
+    case 'OFFLINE': return 'offline';
+    case 'SEDANG': return 'pending';
+    default: return '';
+  }
+}
+
+function getStatusIcon(status) {
+  switch(status) {
+    case 'ONLINE': return 'fas fa-wifi';
+    case 'OFFLINE': return 'fas fa-plug';
+    case 'SEDANG': return 'fas fa-exclamation-triangle';
+    default: return 'fas fa-question';
+  }
+}
+
+// ============================================
+// UPDATE STATISTIK
+// ============================================
+
+function updateStats(data) {
+  const online = data.filter(c => c.status === 'ONLINE').length;
+  const offline = data.filter(c => c.status === 'OFFLINE').length;
+  const warning = data.filter(c => c.status === 'SEDANG').length;
+  const total = data.length;
+  
+  document.getElementById('onlineCount').textContent = online;
+  document.getElementById('offlineCount').textContent = offline;
+  document.getElementById('warningCount').textContent = warning;
+  document.getElementById('totalCount').textContent = total;
+}
+
+// ============================================
+// RENDER DAFTAR PELANGGAN
+// ============================================
+
+function renderCustomerList(customers) {
+  const container = document.getElementById('customersList');
+  if (customers.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: var(--text-light);">Tidak ada data pelanggan</p>';
+    return;
+  }
+  
+  let html = '';
+  customers.forEach(customer => {
+    const statusClass = getStatusClass(customer.status);
+    const statusColor = getStatusColor(customer.status);
+    
+    // Cari splitter yang terhubung
+    const connectedSplitters = allSplitters.filter(splitter => 
+      splitter.connectedCustomers.some(conn => 
+        conn.customer && conn.customer.name === customer.name
+      )
+    );
+    
+    let splitterBadge = '';
+    if (connectedSplitters.length > 0) {
+      splitterBadge = `<span style="background: #8b5cf6; color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.7rem; margin-left: 5px;">${connectedSplitters.length}</span>`;
+    }
+    
+    html += `
+      <div class="customer-item ${statusClass}" data-id="${customer.name}" onclick="focusOnCustomer('${customer.name}')">
+        <div class="customer-status" style="background: ${statusColor}"></div>
+        <div class="customer-info">
+          <div style="display: flex; align-items: center;">
+            <div class="customer-name">${customer.name}</div>
+            ${splitterBadge}
+          </div>
+          <div class="customer-ip">${customer.ip}</div>
+        </div>
+        <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+// ============================================
+// FUNGSI UTILITAS
+// ============================================
+
+function focusOnCustomer(customerName) {
+  const customer = allCustomers.find(c => c.name === customerName);
+  if (!customer || !customer.location) return;
+
+  const [lat, lng] = customer.location
+    .split(',')
+    .map(coord => parseFloat(coord.trim()));
+
+  markers.getLayers().forEach(marker => {
+    if (marker.customerData && marker.customerData.name === customerName) {
+      markers.zoomToShowLayer(marker, () => {
+        map.setView([lat, lng], 17);
+        marker.openPopup();
+      });
+    }
+  });
+}
+
+function zoomToSplitter(splitterName) {
+  const splitter = allSplitters.find(s => s.name === splitterName);
+  if (!splitter || !splitter.coordinates) return;
+  
+  map.setView([splitter.coordinates.lat, splitter.coordinates.lng], 17);
+  
+  splitterLayer.getLayers().forEach(layer => {
+    if (layer.splitterData && layer.splitterData.name === splitterName) {
+      layer.openPopup();
+    }
+  });
+}
+
+function highlightSplitterCables(splitterName) {
+  const splitter = allSplitters.find(s => s.name === splitterName);
+  if (!splitter) return;
+  
+  // Reset semua kabel
+  cableLayer.eachLayer(layer => {
+    layer.setStyle({ opacity: 0.8 });
+  });
+  
+  // Highlight kabel dari splitter ini
+  cableLayer.eachLayer(layer => {
+    const latLngs = layer.getLatLngs();
+    if (latLngs.length === 2) {
+      const start = latLngs[0];
+      if (Math.abs(start.lat - splitter.coordinates.lat) < 0.0001 && 
+          Math.abs(start.lng - splitter.coordinates.lng) < 0.0001) {
+        layer.setStyle({ 
+          opacity: 1,
+          weight: 5
+        });
+        layer.bringToFront();
+      }
+    }
+  });
+}
+
+function locateUser() {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        map.setView([position.coords.latitude, position.coords.longitude], 14);
+      },
+      error => {
+        alert("Tidak dapat mendapatkan lokasi Anda: " + error.message);
+      }
+    );
+  } else {
+    alert("Browser Anda tidak mendukung geolokasi");
+  }
+}
+
+function refreshAllData() {
+  fetchNetworkData();
+  fetchSplitterData();
+  
+  // Show loading animation
+  const refreshBtn = document.getElementById('refreshData');
+  const originalHTML = refreshBtn.innerHTML;
+  refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  refreshBtn.disabled = true;
+  
+  setTimeout(() => {
+    refreshBtn.innerHTML = originalHTML;
+    refreshBtn.disabled = false;
+  }, 2000);
+}
+
+// ============================================
+// TOGGLE LAYER FUNCTIONS
+// ============================================
+
+function toggleLayerCustomers() {
+  showCustomers = !showCustomers;
+  
+  if (showCustomers) {
+    map.addLayer(markers);
+  } else {
+    map.removeLayer(markers);
+  }
+  
+  updateLayerCheckboxes();
+}
+
+function toggleLayerSplitters() {
+  showSplitters = !showSplitters;
+  
+  if (showSplitters) {
+    map.addLayer(splitterLayer);
+  } else {
+    map.removeLayer(splitterLayer);
+  }
+  
+  updateLayerCheckboxes();
+}
+
+function toggleLayerCables() {
+  showCables = !showCables;
+  
+  if (showCables) {
+    map.addLayer(cableLayer);
+    drawCableConnections();
+  } else {
+    map.removeLayer(cableLayer);
+  }
+  
+  updateLayerCheckboxes();
+}
+
+// ============================================
+// FILTER FUNGSIONALITAS
+// ============================================
+
+document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentFilter = this.dataset.filter;
+    applyFilters();
+  });
+});
+
+function applyFilters() {
+  let filtered = allCustomers;
+  
+  if (currentFilter !== 'all') {
+    filtered = allCustomers.filter(customer => {
+      if (currentFilter === 'online') return customer.status === 'ONLINE';
+      if (currentFilter === 'offline') return customer.status === 'OFFLINE';
+      if (currentFilter === 'pending') return customer.status === 'SEDANG';
+      return true;
+    });
+  }
+  
+  renderCustomerList(filtered);
+  addMarkersToMap(filtered);
+}
+
+function showError(message) {
+  const container = document.getElementById('customersList');
+  container.innerHTML = `
+    <div style="text-align: center; padding: 20px; color: var(--danger);">
+      <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+      <p>${message}</p>
+      <button onclick="fetchNetworkData()" style="
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        margin-top: 10px;
+        cursor: pointer;
+      ">Coba Lagi</button>
+    </div>
+  `;
+}
+
+// ============================================
+// INISIALISASI APLIKASI
+// ============================================
+
+window.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  fetchNetworkData();
+  fetchSplitterData();
+  
+  // Auto-refresh every 30 seconds
+  setInterval(fetchNetworkData, 30000);
+  setInterval(fetchSplitterData, 45000);
+});
+</script>
+</body>
+</html>
