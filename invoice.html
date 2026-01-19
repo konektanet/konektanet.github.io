@@ -8,109 +8,259 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-/* === STYLE ASLI (TIDAK DIUBAH) === */
-:root{
-  --brand-blue:#1f4fd8;
-  --brand-gold:#c9a227;
-  --bg-main:#ffffff;
-  --bg-soft:#f9fafb;
-  --bg-page:#f1f5f9;
-  --text:#1f2937;
-  --text-muted:#6b7280;
-  --border:#e5e7eb;
-  --shadow:0 10px 25px rgba(0,0,0,.08);
-  --success-bg:#c9a227;
-  --success-text:#ffffff;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Segoe UI',system-ui,sans-serif;
-  background:var(--bg-page);
-  padding:20px;
-  color:var(--text);
-}
-.page{max-width:900px;margin:auto}
-.hidden{display:none}
-.form-box{
-  background:var(--bg-main);
-  padding:30px;
-  border-radius:16px;
-  box-shadow:var(--shadow);
-}
-.form-box h3{
-  color:var(--brand-blue);
-  margin-bottom:25px;
-  border-bottom:2px solid var(--border);
-  padding-bottom:10px;
-}
-.input-group{margin-bottom:18px}
-label{display:block;margin-bottom:6px;font-weight:600}
-input{
-  width:100%;
-  padding:14px;
-  border-radius:10px;
-  border:2px solid var(--border);
-  background:var(--bg-soft);
-  font-size:16px;
-}
-.actions{display:flex;gap:12px;margin-top:10px}
-button{
-  flex:1;
-  padding:14px;
-  border-radius:10px;
-  border:none;
-  font-weight:600;
-  cursor:pointer;
-}
-.primary{background:var(--brand-blue);color:#fff}
-.secondary{background:#fff;border:2px solid var(--border);color:var(--text)}
-#invoice{background:var(--bg-main);box-shadow:var(--shadow)}
-.invoice-header{
-  padding:30px;
-  display:flex;
-  justify-content:space-between;
-  border-bottom:2px solid var(--brand-gold);
-}
-.logo{height:56px}
-.badge{
-  background:var(--success-bg);
-  color:#fff;
-  padding:6px 18px;
-  border-radius:20px;
-  font-weight:700;
-  font-size:.8rem;
-}
-.invoice-body{padding:30px}
-.info{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-  margin-bottom:30px;
-}
-table{width:100%;border-collapse:collapse}
-th,td{padding:14px;border-bottom:1px solid var(--border)}
-th{background:var(--bg-soft);color:var(--brand-blue)}
-.amount{text-align:right;font-weight:600}
-.total{background:#fffaf0;font-weight:700}
-.invoice-footer{
-  background:var(--bg-soft);
-  text-align:center;
-  padding:25px;
-  font-size:.9rem;
-  color:var(--text-muted);
-}
-.download{
-  margin-top:20px;
-  padding:16px;
-  width:100%;
-  background:linear-gradient(135deg,#16a34a,#15803d);
-  color:#fff;
-  border:none;
-  border-radius:12px;
-  font-weight:600;
-  cursor:pointer;
-}
-</style>
+  :root{
+    /* WARNA BRAND (TANPA BACKGROUND BIRU) */
+    --brand-blue:#1f4fd8;
+    --brand-gold:#c9a227;
+  
+    /* BACKGROUND NETRAL */
+    --bg-main:#ffffff;
+    --bg-soft:#f9fafb;
+    --bg-page:#f1f5f9;
+  
+    /* TEKS */
+    --text:#1f2937;
+    --text-muted:#6b7280;
+  
+    /* BORDER & SHADOW */
+    --border:#e5e7eb;
+    --shadow:0 10px 25px rgba(0,0,0,.08);
+  
+    /* STATUS */
+    --success-bg:#c9a227;
+    --success-text:#ffffff;
+  }
+  
+  *{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+  }
+  
+  body{
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:var(--bg-page);
+    padding:20px;
+    color:var(--text);
+  }
+  
+  /* ===== PAGE ===== */
+  .page{
+    max-width:900px;
+    margin:auto;
+  }
+  
+  .hidden{display:none}
+  
+  /* ===== FORM ===== */
+  .form-box{
+    background:var(--bg-main);
+    padding:30px;
+    border-radius:16px;
+    box-shadow:var(--shadow);
+  }
+  
+  .form-box h3{
+    color:var(--brand-blue);
+    margin-bottom:25px;
+    border-bottom:2px solid var(--border);
+    padding-bottom:10px;
+  }
+  
+  .input-group{margin-bottom:18px}
+  
+  label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  
+  input{
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    border:2px solid var(--border);
+    background:var(--bg-soft);
+    font-size:16px;
+  }
+  
+  /* ===== BUTTON ===== */
+  .actions{
+    display:flex;
+    gap:12px;
+    margin-top:10px;
+  }
+  
+  button{
+    flex:1;
+    padding:14px;
+    border-radius:10px;
+    border:none;
+    font-weight:600;
+    cursor:pointer;
+  }
+  
+  .primary{
+    background:var(--brand-blue);
+    color:#fff;
+  }
+  
+  .secondary{
+    background:#fff;
+    border:2px solid var(--border);
+    color:var(--text);
+  }
+  
+  /* ===== INVOICE ===== */
+  #invoice{
+    background:var(--bg-main);
+    border-radius:0px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  
+  /* ===== HEADER ===== */
+  .invoice-header{
+    background:var(--bg-main);
+    padding:30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:2px solid var(--brand-gold);
+  }
+  
+  .header-left{
+    display:flex;
+    align-items:center;
+  }
+  
+  .logo{
+    height:56px;
+    width:auto;
+    object-fit:contain;
+  }
+  
+  .header-right{
+    text-align:right;
+  }
+  
+  .header-right h1{
+    font-size:1.9rem;
+    font-weight:700;
+    color:var(--brand-blue);
+  }
+  
+  .header-right p{
+    margin:4px 0 8px;
+    font-size:.95rem;
+    color:var(--text-muted);
+  }
+  
+  .badge{
+    background:var(--success-bg);
+    color:var(--success-text);
+    display:inline-block;
+    padding:6px 18px;
+    border-radius:20px;
+    font-weight:700;
+    font-size:.8rem;
+  }
+  
+  /* ===== BODY ===== */
+  .invoice-body{
+    padding:30px;
+  }
+  
+  .info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-bottom:30px;
+  }
+  
+  .info h4{
+    font-size:.8rem;
+    color:var(--text-muted);
+  }
+  
+  .info p{
+    font-weight:600;
+    font-size:1.05rem;
+  }
+  
+  /* ===== TABLE ===== */
+  table{
+    width:100%;
+    border-collapse:collapse;
+  }
+  
+  th{
+    background:var(--bg-soft);
+    color:var(--brand-blue);
+    padding:14px;
+    text-align:left;
+    border-bottom:2px solid var(--border);
+  }
+  
+  td{
+    padding:14px;
+    border-bottom:1px solid var(--border);
+  }
+  
+  .amount{
+    text-align:right;
+    font-weight:600;
+  }
+  
+  .total{
+    background:#fffaf0;
+    font-weight:700;
+  }
+  
+  /* ===== FOOTER ===== */
+  .invoice-footer{
+    background:var(--bg-soft);
+    text-align:center;
+    padding:25px;
+    font-size:.9rem;
+    color:var(--text-muted);
+  }
+  
+  /* ===== DOWNLOAD BUTTON ===== */
+  .download{
+    margin-top:20px;
+    padding:16px;
+    width:100%;
+    background:linear-gradient(135deg,#16a34a,#15803d);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  
+  /* ===== RESPONSIVE ===== */
+  @media(max-width:600px){
+    .invoice-header{
+      flex-direction:column;
+      text-align:center;
+    }
+    .header-right{text-align:center}
+  }
+  
+  /* ===== PRINT ===== */
+  @media print{
+    body{
+      padding:0;
+      background:#fff;
+    }
+    .download,.back{
+      display:none;
+    }
+  }
+  </style>
+  
 </head>
 
 <body>
@@ -152,9 +302,16 @@ th{background:var(--bg-soft);color:var(--brand-blue)}
 <div class="page hidden" id="pageInvoice">
 
 <div id="invoice">
+
   <div class="invoice-header">
-    <img src="logo.png" class="logo">
-    <span class="badge">LUNAS</span>
+    <div class="header-left">
+      <img src="logo.png" class="logo" alt="KONEKTA Net">
+    </div>
+    <div class="header-right">
+      <!-- <h1>KONEKTA Net</h1>
+      <p>Koneksi Berkualitas untuk Indonesia Emas</p> -->
+      <span class="badge">LUNAS</span>
+    </div>
   </div>
 
   <div class="invoice-body">
@@ -186,16 +343,14 @@ th{background:var(--bg-soft);color:var(--brand-blue)}
     <p>Invoice ini sah tanpa tanda tangan</p>
     <p>www.konekta.net</p>
   </div>
+
 </div>
 
 <button class="download" onclick="downloadInvoice()">Download Invoice</button>
-
-<!-- 🔥 TOMBOL BARU (TANPA MENGGANGGU YANG LAMA) -->
-<button class="download" style="background:#0ea5e9" onclick="shareInvoice()">
+<button class="download" style="background:#0ea5e9" onclick="kirimInvoice()">
   Kirim Invoice
 </button>
-
-<button class="download back" style="background:#64748b" onclick="kembali()">Kembali</button>
+<button class="download back" style="margin-top:10px;background:#64748b" onclick="kembali()">Kembali</button>
 
 </div>
 
@@ -241,39 +396,92 @@ function downloadInvoice(){
   });
 }
 
-/* ===================== */
-/* 🔥 FUNGSI SHARE NATIVE */
-/* ===================== */
-async function shareInvoice(){
-  if(!navigator.share){
-    alert("Fitur kirim hanya tersedia di Android (Chrome) dengan HTTPS");
-    return;
-  }
 
-  const canvas = await html2canvas(document.getElementById("invoice"),{
-    scale:2,
-    backgroundColor:"#ffffff"
-  });
-
-  canvas.toBlob(async blob=>{
-    const file = new File(
-      [blob],
-      "Invoice_"+v_idpel.textContent+".jpg",
-      { type:"image/jpeg" }
-    );
-
-    try{
-      await navigator.share({
-        title:"Invoice KONEKTA Net",
-        text:"Invoice untuk "+v_nama.textContent,
-        files:[file]
-      });
-    }catch(e){
-      console.log("Share dibatalkan");
+// Fungsi untuk membaca parameter dari URL
+function getUrlParams() {
+  const params = {};
+  const queryString = window.location.search.substring(1);
+  const pairs = queryString.split('&');
+  
+  for (let pair of pairs) {
+    const [key, value] = pair.split('=');
+    if (key && value) {
+      params[decodeURIComponent(key)] = decodeURIComponent(value);
     }
-  },"image/jpeg",0.95);
+  }
+  
+  return params;
 }
-</script>
 
+// Fungsi untuk otomatis mengisi form dari parameter URL
+function autoFillFromParams() {
+  const params = getUrlParams();
+  
+  if (params.data) {
+    try {
+      // Decode data dari JSON
+      const invoiceData = JSON.parse(decodeURIComponent(params.data));
+      
+      // Isi form dengan data
+      document.getElementById('nama').value = invoiceData.nama || '';
+      document.getElementById('idpel').value = invoiceData.idpel || '';
+      document.getElementById('paket').value = invoiceData.paket || '';
+      document.getElementById('biaya').value = invoiceData.biaya || 0;
+      document.getElementById('lain').value = invoiceData.lain || 0;
+      
+      // Otomatis buat invoice
+      setTimeout(() => {
+        buatInvoice();
+        
+        // Jika ingin otomatis download
+        if (params.autoDownload === 'true') {
+          setTimeout(downloadInvoice, 1000);
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error parsing invoice data:', error);
+    }
+  }
+}
+
+// Panggil fungsi ketika halaman dimuat
+window.addEventListener('DOMContentLoaded', autoFillFromParams);
+
+// Tambahkan fungsi untuk download invoice secara otomatis
+window.downloadInvoice = downloadInvoice;
+</script>
+<script>
+  async function kirimInvoice(){
+    if(!navigator.share){
+      alert("Fitur kirim hanya tersedia di HP Android (Chrome)");
+      return;
+    }
+  
+    const canvas = await html2canvas(
+      document.getElementById("invoice"),
+      { scale:2, backgroundColor:"#ffffff" }
+    );
+  
+    canvas.toBlob(async function(blob){
+      const file = new File(
+        [blob],
+        "Invoice_"+v_idpel.textContent+".jpg",
+        { type:"image/jpeg" }
+      );
+  
+      try{
+        await navigator.share({
+          title: "Invoice KONEKTA Net",
+          text: "Invoice atas nama " + v_nama.textContent,
+          files: [file]
+        });
+      }catch(e){
+        console.log("Pengiriman dibatalkan");
+      }
+    }, "image/jpeg", 0.95);
+  }
+  </script>
+  
 </body>
 </html>
